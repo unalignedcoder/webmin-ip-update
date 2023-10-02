@@ -24,17 +24,32 @@ Not anymore.
 By so doing, it will be possible to log onto your webmin/virtualmin frontend *only from your machine*.
 
 ## Requirements
-This script connects to your server via SSH using Plink (part of the [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) package).
-Therefore, it requires you to provide:
-1) IP number/hostname of remote server
-2) username
-3) SSH port (usually 22)
-4) Host Key fingerprint
-5) A running agent (such as Pageant under Windows) with the SSH-RSA key loaded for the user
+On Windows, this script connects to your server via SSH using Plink (part of the [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) package).
+Therefore, it requires you to:
+1) Have Putty installed
+2) Customize the script, providing the path to the Plink executable (if not in PATH)
+
+Furthermore, whether you are on Windows or Linux, you will have to provide:
+   - IP number/hostname of remote server
+   - username (user shoud have write privileges to `miniserv.conf`)
+   - SSH port (usually `22`, a custom port is recommended)
+   - Host Key public fingerprint (can be retrieved via SSH or from within Webmin SSH server settings)
+   - A running agent (such as Pageant under Windows, also included in Putty) with the SSH-RSA key loaded for the user[^1]. 
 
 ## Installation
-Just download the script, place it wherever is convenient for you, and set up a cron/scheduled task to run this script in the background whenever you deem necessary.
-It could run every half hour, once a day, it could be ran only when connecting to the internet, etc.
+1) Download the script
+2) Place it wherever is convenient for you
+3) Set up a cron/scheduled task to run this script in the background whenever you deem necessary (it could run every half hour, once a day, it could be ran only when connecting to the internet, etc.)
+4) Alternatively, you could run the script **manually** whenever you are about to connect to Webmin. A simple script could be concocted  to first run this script, then open the Webmin frontend in the default browser.
 
-Or else, you could run it **manually** whenever you are about to connect to Webmin. 
-A simple script could be concocted  to first run this script, then open the Webmin frontend in the default browser.
+For example, a .bat file under Windows could achieve this:
+```
+@echo off
+:: Run your PowerShell script
+powershell.exe -ExecutionPolicy Bypass -File "C:\path\to\your\script.ps1"
+
+:: Open Webmin in the default browser
+start "" "https://remote.server:10000"
+```
+
+[^1]:  Under both Windows and Linux, it can be a good idea to use a program such as [KeepassXC](https://github.com/keepassxreboot/keepassxc) to load SSH keys onto your SSH agent, so that they will be available only when you are logged into the Keepass database.
