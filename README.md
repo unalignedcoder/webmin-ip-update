@@ -39,7 +39,7 @@ Furthermore, whether you are on Windows or Linux, you will have to customize the
 
 Most importantly, it is essential that you have **a running SSH agent** (such as Pageant under Windows, also included in Putty) with the respective SSH-RSA key loaded for the user[^1]. 
 
-_I assume you don't want to write down username and password in this script, or elsewhere. _
+*I assume you don't want to write down username and password in this script, or elsewhere. *
 
 ## Installation
 1) Download the script
