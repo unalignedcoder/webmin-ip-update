@@ -32,7 +32,7 @@
 $plink = "C:\path\to\PLINK.EXE"
 
 # Array of DNS servers to query
-$dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1, "1.1.1.1")
+$dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1", "1.1.1.1")
 
 # Define the file path for miniserv.conf
 $miniservConfPath = "/etc/webmin/miniserv.conf"
