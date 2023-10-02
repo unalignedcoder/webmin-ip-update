@@ -29,7 +29,8 @@ Therefore, it requires you to:
 1) Have Putty installed
 2) Customize the script, providing the path to the Plink executable (if not in PATH)
 
-Furthermore, whether you are on Windows or Linux, you will have to provide:
+Furthermore, whether you are on Windows or Linux, you will have to customize the script, providing:
+   - Path to the `miniserv.conf` file (usually `/etc/webmin/miniserv.conf`)
    - IP number/hostname of remote server
    - username (user shoud have write privileges to `miniserv.conf`)
    - SSH port (usually `22`, a custom port is recommended)
