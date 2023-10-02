@@ -65,17 +65,13 @@ try {
 	
 	# Call the Get-ExternalIP function to retrieve the external IP
 	$externalIP = Get-ExternalIP
-	
-	#SSH commands
-	$sshFetch = "cat /etc/webmin/miniserv.conf"
-	$sshEdit = "sed -i 's/^allow=.*$/allow=$env:currentIP/' /etc/webmin/miniserv.conf"
 
 	# Export the $currentIP variable and log it to console
 	$env:currentIP = $externalIP
 	Write-Host "Current IP: $env:currentIP"
 	
 	#Use Plink to check miniserv.conf content
-	$miniservConfContent = Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshFetch"""
+	$miniservConfContent = Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort cat $miniservConfPath"
 	
 	# Check if the current IP is already in the miniserv.conf content
 	$ipAlreadyExists = $miniservConfContent -match "allow=$env:currentIP"
@@ -87,9 +83,12 @@ try {
 		# Read-Host "Press Enter to exit..."
 		exit
 	}
+			
+	#SSH command
+	$sshEdit = "sed -i 's/^allow=.*$/allow=$env:currentIP/'"
 	
     # Use Plink to edit miniserv.conf ("&& systemctl restart webmin" probably not needed)
-    Start-Process -FilePath "$plink" -ArgumentList "-ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshEdit""" -NoNewWindow -Wait
+    Start-Process -FilePath "$plink" -ArgumentList "-ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshEdit"" $miniservConfPath" -NoNewWindow -Wait
 
     # Check if BurntToast is installed before attempting to display notification
     if (Get-Module -Name BurntToast -ListAvailable) {
