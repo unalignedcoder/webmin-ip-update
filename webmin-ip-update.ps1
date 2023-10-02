@@ -45,17 +45,12 @@ $hostKey = "<host key fingerprint>" #in the `key-type:host-key` format
 
 #============== end customization
 
-
 # Check if the BurntToast module is installed
 if (-not (Get-Module -Name BurntToast -ListAvailable)) {
     Write-Host "Warning: BurntToast module is not installed. System notifications will not be displayed."
 }
 
-try {
-	
-	#SSH commands
-	$sshFetch = "cat $miniservConfPath"
-	$sshEdit = "sed -i 's/^allow=.*$/allow=$env:currentIP/' $miniservConfPath"
+try {	
 
 	# Query DNS servers to get the external IP address
 	function Get-ExternalIP {
@@ -67,6 +62,14 @@ try {
 		}
 		Write-Host "Failed to retrieve external IP"
 	}
+	
+	# Call the Get-ExternalIP function to retrieve the external IP
+	$externalIP = Get-ExternalIP
+	
+	#SSH commands
+	$sshFetch = "cat $miniservConfPath"
+	$sshEdit = "sed -i 's/^allow=.*$/allow=$env:currentIP/' $miniservConfPath"
+
 
 	# Export the $currentIP variable and log it to console
 	$env:currentIP = $externalIP
