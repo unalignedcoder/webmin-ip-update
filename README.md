@@ -8,7 +8,7 @@ If you are a single user/admin who connects to your Webmin/Virtualmin instance r
 On Webmin, you can decide to allow connections only from selected ip numbers or hostnames. 
 This is a great security feature, however useless if you have a dynamic IP, like most people do.
 
-Previously, to overcome to this problem you had to subscribe to a DDNS service such as Dynu or NoIP, have them associate a given hostname to your current IP number, and set up Webmin to only allow that particular hostname.
+Previously, to overcome this problem you had to subscribe to a DDNS service such as Dynu or NoIP, have them associate a given hostname to your current IP number, and set up Webmin to only allow that particular hostname.
 
 This is a solution replete with problems, as it relies on some company's good will to provide you with this free service for times to come. 
 Furthermore, most likely allowing their app to always run in the background on your machine to monitor your IP changes.
