@@ -37,7 +37,7 @@ $dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1
 # Define the file path for miniserv.conf
 $miniservConfPath = "/etc/webmin/miniserv.conf"
 
-# SSH into your remote VPS using the key stored in Pageant
+# SSH into your remote VPS using the key stored in SSH agent (Pageant)
 $sshHost = "<ip-number or server hostname>"
 $sshUser = "<username with write privileges to miniserv.conf>"
 $sshPort = "<port number>" #usually 22, custom number is recommended
