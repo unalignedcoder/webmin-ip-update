@@ -34,7 +34,7 @@ Furthermore, whether you are on Windows or Linux, you will have to customize the
    - IP number/hostname of remote server
    - username (user shoud have write privileges to `miniserv.conf`)
    - SSH port (usually `22`, a custom port is recommended)
-   - Host Key public fingerprint (can be retrieved via SSH or from within Webmin SSH server settings)
+   - Host Key public fingerprint (in the `key-type:host-key` format; can be retrieved via SSH or from within Webmin SSH server settings)
    - A running agent (such as Pageant under Windows, also included in Putty) with the SSH-RSA key loaded for the user[^1]. 
 
 ## Installation
