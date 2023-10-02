@@ -38,8 +38,7 @@ Furthermore, whether you are on Windows or Linux, you will have to customize the
    - Host Key public fingerprint (in the `key-type:host-key` format; can be retrieved via SSH or from within Webmin SSH server settings)
 
 Most importantly, it is essential that you have **a running SSH agent** (such as Pageant under Windows, also included in Putty) with the respective SSH-RSA key loaded for the user[^1]. 
-
-I assume you don't want to write down sensitive credentials inside this script.
+(I assume you don't want to write down sensitive credentials inside this script.)
 
 ## Installation
 1) Download the script
