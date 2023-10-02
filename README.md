@@ -26,8 +26,9 @@ By so doing, it will be possible to log onto your webmin/virtualmin frontend *on
 ## Requirements
 On Windows, this script connects to your server via SSH using Plink (part of the [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) package).
 Therefore, it requires you to:
-1) Have Putty installed
-2) Customize the script, providing the path to the Plink executable (if not in PATH)
+1) Have Putty present on your machine;
+2) Customize the script, providing the path to the Plink executable (if not in `$PATH`);
+3) If you want the script to send a system notification when the IP has been changed, you need to make sure the [BurntToast](https://github.com/Windos/BurntToast) extension to PowerShell is installed.
 
 Furthermore, whether you are on Windows or Linux, you will have to customize the script, providing:
    - Path to the `miniserv.conf` file (usually `/etc/webmin/miniserv.conf`)
