@@ -1,6 +1,6 @@
 Script which automatically changes the allowed IP on [Webmin](https://github.com/webmin/webmin), depending on the dynamic IP assigned to the machine you are connecting from.
 
-It is available in [PowerShell](https://github.com/unalignedcoder/webmin-ip-update/blob/main/webmin-ip-update.ps1) at the moment. Bash will be available shortly.
+It is available in [PowerShell](https://github.com/unalignedcoder/webmin-ip-update/blob/main/webmin-ip-update.ps1) at the moment. **Bash will be available shortly.**
 
 ## Why this script
 If you are a single user/admin who connects to your Webmin/Virtualmin instance remotely (for example on a VPS), this script is for you.
