@@ -67,13 +67,12 @@ try {
 	$externalIP = Get-ExternalIP
 	
 	#SSH commands
-	$sshFetch = "cat $miniservConfPath"
-	$sshEdit = "sed -i 's/^allow=.*$/allow=$env:currentIP/' $miniservConfPath"
-
+	$sshFetch = "cat /etc/webmin/miniserv.conf"
+	$sshEdit = "sed -i 's/^allow=.*$/allow=$env:currentIP/' /etc/webmin/miniserv.conf"
 
 	# Export the $currentIP variable and log it to console
 	$env:currentIP = $externalIP
-	#Write-Host "Current IP: $env:currentIP"
+	Write-Host "Current IP: $env:currentIP"
 	
 	#Use Plink to check miniserv.conf content
 	$miniservConfContent = Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshFetch"""
