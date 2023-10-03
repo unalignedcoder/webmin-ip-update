@@ -11,7 +11,7 @@ This is a great security feature, however useless if you have a dynamic IP, like
 Previously, to overcome this problem you had to subscribe to a DDNS service such as Dynu or NoIP, have them associate a given hostname to your current IP number, and set up Webmin to only allow that particular hostname.
 
 This is a solution replete with problems, as it relies on some company's good will to provide you with this free service for times to come. 
-Furthermore, most likely it means allowing their app to always run in the background on your machine, in order to monitor your IP changes. Or otherwise it requires you to modify your router settings.
+Furthermore, most likely it means allowing their app to always run in the background on your machine, in order to monitor your IP changes.
 
 Not anymore.
 
