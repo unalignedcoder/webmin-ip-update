@@ -5,9 +5,6 @@
 # Array of DNS servers to query
 dnsServers=("resolver1.opendns.com" "8.8.8.8" "208.67.222.222" "77.88.8.1" "1.1.1.1")
 
-# Get the script's directory
-scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 # Define the file path for miniserv.conf
 miniservConfPath="/etc/webmin/miniserv.conf"
 
@@ -16,10 +13,14 @@ sshHost="<ip-number or server hostname>"
 sshUser="<username with write privileges to miniserv.conf>"
 sshPort="<port number>" # usually 22, custom number is recommended
 
+#============== end customization
+
+
+# Get the script's directory
+scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # File to store the last known IP
 ipStore="$scriptDir/.last_known_ip.txt"
-
-#============== end customization
 
 # Query DNS servers to get the external IP address
 function get_external_ip {
