@@ -33,7 +33,7 @@ Furthermore, whether you are on Windows or Linux, you will have to customize the
    - IP number/hostname of remote server
    - username (user shoud have write privileges to `miniserv.conf`)
    - SSH port (usually `22`, a custom port is recommended)
-   - Host Key public fingerprint (in the `key-type:host-key` format; can be retrieved via SSH or from within Webmin SSH server settings)
+   - Host Key public fingerprint (in the `key-type:host-key` format; can be retrieved via SSH or from within Webmin SSH server settings. The host public key honestly is not always necessary, once it is saved in the SSH cache. I've found this ito be a requirement only under Windows, and probably only the first time the script is ran.)
 
 Most importantly, it is essential that you have **a running SSH agent** (such as Pageant under Windows, also included in Putty) with the respective SSH-RSA key loaded for the user[^1]. 
 (I assume you don't want to write down sensitive credentials inside this script.)
@@ -53,5 +53,7 @@ powershell.exe -ExecutionPolicy Bypass -File "C:\path\to\your\script.ps1"
 :: Open Webmin in the default browser
 start "" "https://remote.server:10000"
 ```
+## Portability
+The script is "portable". It will write one necessary file into its own directory (this file can be shared between the PowerShell and Bash scripts), and will look for icons for the notifications within the same directory. By keeping all the files in their own folder, the script can work from any machine.
 
 [^1]:  Under both Windows and Linux, it can be a good idea to use a program such as [KeepassXC](https://github.com/keepassxreboot/keepassxc) to load SSH keys onto your SSH agent, so that they will be available only when you are logged into the Keepass database.
