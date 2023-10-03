@@ -42,17 +42,8 @@ Most importantly, it is essential that you have **a running SSH agent** (such as
 1) [Download](https://github.com/unalignedcoder/webmin-ip-update/releases) the script
 2) Place it wherever is convenient for you (best kept in its own folder, as it will create a small file when in use)
 3) Set up a cron/scheduled task to run this script in the background whenever you deem necessary (it could run every half hour, once a day, it could be ran only when connecting to the internet, etc.)
-4) Alternatively, you could run the script **manually** whenever you are about to connect to Webmin. A simple script could be concocted  to first run this script, then open the Webmin frontend in the default browser.
+4) Alternatively, you could run the script **manually** whenever you are about to connect to Webmin.
 
-For example, a .bat file under Windows could achieve this:
-```
-@echo off
-:: Run your PowerShell script
-powershell.exe -ExecutionPolicy Bypass -File "C:\path\to\your\script.ps1"
-
-:: Open Webmin in the default browser
-start "" "https://remote.server:10000"
-```
 ## Portability
 The script is "portable". It will write one necessary file into its own directory (this file can be shared between the PowerShell and Bash scripts), and will look for icons for the notifications within the same directory. By keeping all the files in their own folder, the script can work from any machine.
 
