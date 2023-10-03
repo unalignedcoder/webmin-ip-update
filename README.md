@@ -19,9 +19,7 @@ Not anymore.
 1) It will discover your IP number against a free DNS service such as OpenDNS or Google;
 2) Connect to your remote server, retrieve the `/etc/webim/miniserv.conf` file Webmin uses for settings;
 3) Check whether the `allow=` line already contains your current IP number;
-4) If not, modify it so that the IP number is current (it will append the current IP to the list, if multiple IPs/Hostnames are allowed, but always deleting the previous dynamic IP number from the local machine.).
-
-By so doing, it will be possible to log onto your webmin/virtualmin frontend *only from your machine*.
+4) If not, modify it so that the IP number is current (it will append the current IP to the list, if multiple IPs/Hostnames are allowed, but always replacing the previous dynamic IP number).
 
 ## Requirements
 On Windows, this script connects to your server via SSH using Plink (part of the [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) package).
