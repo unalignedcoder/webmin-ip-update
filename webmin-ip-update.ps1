@@ -32,9 +32,6 @@ $plink = "C:\path\to\PLINK.EXE"
 # Array of DNS servers to query
 $dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1", "1.1.1.1")
 
-# Get the script's directory
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-
 # Define the file path for miniserv.conf
 $miniservConfPath = "/etc/webmin/miniserv.conf"
 
@@ -44,7 +41,7 @@ $sshUser = "<username with write privileges to miniserv.conf>"
 $sshPort = "<port number>" # Usually 22, custom number is recommended
 
 # File to store the last known IP
-$ipStore = "$PSScriptRoot/.last_known_ip.txt
+$ipStore = "$PSScriptRoot/.last_known_ip.txt"
 
 #============== end customization
 
