@@ -43,6 +43,9 @@ $sshPort = "<port number>" # Usually 22, custom number is recommended
 # File to store the last known IP
 $ipStore = "$PSScriptRoot/.last_known_ip.txt"
 
+# May be necessary. Change this value depending on your experience.
+$restartWebmin = $true
+
 #============== end customization
 
 # Check if the BurntToast module is installed
@@ -102,16 +105,25 @@ try {
 
     # Use Plink to update miniserv.conf
     Start-Process -FilePath "$plink" -ArgumentList "-ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshEdit"" $miniservConfPath" -NoNewWindow -Wait
-
-    # Update the IP store file with the current IP
-    $currentIP | Set-Content -Path $ipStore
-
+    Write-Host "Notification: IP address updated successfully. New IP: $currentIP"
+    
     # Check if BurntToast is installed before attempting to display notification
     if (Get-Module -Name BurntToast -ListAvailable) {
         New-BurntToastNotification -Text "IP address updated successfully.`nNew IP: $currentIP" -AppLogo "ip.png"
     }
+    
+    # Restart Webmin if so specified
+    if ($restartWebmin) {
+        Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""systemctl restart webmin"""
+        Write-Host "Webmin restarted."
+	# Check if BurntToast is installed before attempting to display notification
+	if (Get-Module -Name BurntToast -ListAvailable) {
+    	    New-BurntToastNotification -Text "Webmin restarted." -AppLogo "ip.png"
+    	}
+    }
 
-    Write-Host "Notification: IP address updated successfully. New IP: $currentIP"
+    # Update the IP store file with the current IP
+    $currentIP | Set-Content -Path $ipStore    
 
 } catch {
 	
