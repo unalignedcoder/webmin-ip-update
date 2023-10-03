@@ -51,18 +51,21 @@ fi
 
 # Edit miniserv.conf
 ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's/^allow=.*$/allow=$externalIP/' $miniservConfPath"
+echo "IP address updated successfully." "New IP: $externalIP"
 
 #restart Webmin
 if $restartWebmin; then
   ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
+  echo "Webmin restarted."
 fi
 
 # Send a desktop notification if `notify-send` is available (commonly in Ubuntu)
 if type "notify-send" &> /dev/null; then
   notify-send "IP address updated successfully." "New IP: $externalIP"
+  if $restartWebmin; then
+    notify-send "Webmin restarted."
+  fi
 fi
 
 # Update the IP store file with the current IP
 echo "$externalIP" > "$ipStore"
-
-echo "Notification: IP address updated successfully. New IP: $externalIP"
