@@ -1,4 +1,4 @@
-Script which automatically changes the allowed IP on [Webmin](https://github.com/webmin/webmin), depending on the dynamic IP assigned to the machine you are connecting from.
+This script automatically changes the allowed IP on [Webmin](https://github.com/webmin/webmin), depending on the dynamic IP assigned to the machine you are connecting from.
 
 It is available in [PowerShell](https://github.com/unalignedcoder/webmin-ip-update/blob/main/webmin-ip-update.ps1) at the moment. **Bash will be available shortly.**
 
@@ -19,7 +19,7 @@ Not anymore.
 1) It will discover your IP number against a free DNS service such as OpenDNS or Google;
 2) Connect to your remote server, retrieve the `/etc/webim/miniserv.conf` file Webmin uses for settings;
 3) Check whether the `allow=` line already contains your current IP number;
-4) If not, modify it so that the IP number is current.
+4) If not, modify it so that the IP number is current (it will append the current IP to the list, if multiple IPs/Hostnames are allowed, but always deleting the previous dynamic IP number from the local machine.).
 
 By so doing, it will be possible to log onto your webmin/virtualmin frontend *only from your machine*.
 
