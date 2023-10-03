@@ -44,7 +44,7 @@ $sshUser = "<username with write privileges to miniserv.conf>"
 $sshPort = "<port number>" # Usually 22, custom number is recommended
 
 # File to store the last known IP
-$ipStore = Join-Path $scriptDir ".last_known_ip.txt"
+$ipStore = "$PSScriptRoot/.last_known_ip.txt
 
 #============== end customization
 
