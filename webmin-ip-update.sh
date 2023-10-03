@@ -13,6 +13,9 @@ sshHost="<ip-number or server hostname>"
 sshUser="<username with write privileges to miniserv.conf>"
 sshPort="<port number>" # usually 22, custom number is recommended
 
+# probably necessary. change this value depending on your experience
+restartWebmin= true
+
 #============== end customization
 
 
@@ -48,6 +51,11 @@ fi
 
 # Edit miniserv.conf
 ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's/^allow=.*$/allow=$externalIP/' $miniservConfPath"
+
+#restart Webmin
+if $restartWebmin; then
+  ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
+fi
 
 # Send a desktop notification if `notify-send` is available (commonly in Ubuntu)
 if type "notify-send" &> /dev/null; then
