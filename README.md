@@ -40,7 +40,7 @@ Most importantly, it is essential that you have **a running SSH agent** (such as
 
 ## Installation
 1) [Download](https://github.com/unalignedcoder/webmin-ip-update/releases) the script
-2) Place it wherever is convenient for you
+2) Place it wherever is convenient for you (best kept in its own folder, as it will create a small file when in use)
 3) Set up a cron/scheduled task to run this script in the background whenever you deem necessary (it could run every half hour, once a day, it could be ran only when connecting to the internet, etc.)
 4) Alternatively, you could run the script **manually** whenever you are about to connect to Webmin. A simple script could be concocted  to first run this script, then open the Webmin frontend in the default browser.
 
