@@ -44,7 +44,7 @@ $sshPort = "<port number>" # Usually 22, custom number is recommended
 $ipStore = "$PSScriptRoot/.last_known_ip.txt"
 
 # May be necessary. Change this value depending on your experience.
-$restartWebmin = $true
+$restartWebmin = true
 
 #============== end customization
 
