@@ -188,3 +188,5 @@ try {
 	Show-Notification "Error: An error occurred: $errorMessage", "error.png"
 }
 
+# Pause execution to keep the window open (debug feature)
+# read -p "Press Enter to exit..."
