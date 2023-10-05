@@ -62,9 +62,7 @@ logFilePath="$scriptDir/script.log"
 
 # Function to log messages to a file
 function Log-Message {
-	param (
-		[string]$Message
-	)
+	local Message="$1"
 	
 	timestamp=$(date "+%Y-%m-%d %H:%M:%S")
 	
@@ -89,15 +87,30 @@ function Get-ExternalIP {
 
 # Display desktop notifications (customize this for your desktop environment)
 function Show-Notification {
-	param(
-		[string]$Text,
-		[string]$Icon
-	)
+	local Text="$1",
+	local Icon="$2"
 	
 	if command -v notify-send &>/dev/null; then
 		notify-send -i "$icon" "$Text"
 	else Log-Message "notify-send is not installed. Cannot display system notifications."
 	fi
+}
+
+# Define a function to handle errors
+function Handle-Error {
+    local errorMessage="$1"
+    Log-Message "Error: An error occurred: $errorMessage"
+    Show-Notification "Error: An error occurred: $errorMessage" "error.png"
+    exit 1
+}
+
+# Use try-catch-like mechanism
+function try {
+    "$@"
+    local exit_status=$?
+    if [ $exit_status -ne 0 ]; then
+        Handle-Error "Command '$*' failed with exit status $exit_status"
+    fi
 }
 
 #============== Execution
@@ -165,7 +178,7 @@ try {
 
 	# Show notification
 	Log-Message "IP address updated successfully.\nNew IP: $externalIP"
-	Show-Notification "IP address updated successfully.\nNew IP: $externalIP", "ip.png"
+	Show-Notification "IP address updated successfully.\nNew IP: $externalIP" "ip.png"
 	
 	# Restart Webmin if specified
 	if $restartWebmin; then
@@ -173,20 +186,17 @@ try {
 		
 		# Show notification
 		Log-Message "Webmin restarted."
-		Show-Notification "Webmin restarted.", "webmin.png"
+		Show-Notification "Webmin restarted." "webmin.png"
 	fi
 
 	# Update the IP store file with the current IP
 	echo "$externalIP" > "$ipStore"
 	Log-Message "Most recent IP added to store file."
 
-} catch {
-
-	# Handle errors
-	errorMessage="${1}"
-	Log-Message "Error: An error occurred: $errorMessage"
-	Show-Notification "Error: An error occurred: $errorMessage", "error.png"
-}
+} 
 
 # Pause execution to keep the window open (debug feature)
 # read -p "Press Enter to exit..."
+
+# exit normally if no errors occurred
+exit 0
