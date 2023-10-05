@@ -41,15 +41,14 @@ sshUser="<username with write privileges to miniserv.conf>"
 sshPort="<port number>" # usually 22, custom number is recommended
 
 # probably necessary. change this value depending on your experience
-restartWebmin= true
+restartWebmin=true
 
 #============== end customization
-
 
 # Get the script's directory
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# File to store the last known IP
+# retrieve the last known IP
 ipStore="$scriptDir/.last_known_ip.txt"
 
 # Query DNS servers to get the external IP address
@@ -67,20 +66,36 @@ function get_external_ip {
 
 # Retrieve the external IP
 externalIP=$(get_external_ip)
-
 echo "Current IP: $externalIP"
 
-# Check if the current IP is already in the miniserv.conf content
-if ssh -p "$sshPort" "$sshUser@$sshHost" "grep -q 'allow=$externalIP' $miniservConfPath"; then
+#compare old and new IPs
+oldIP=$(cat "$ipStore")
+if [ "$oldIP" == "$externalIP" ]; then
   echo "$externalIP is already allowed in Webmin. Nothing to do."
   exit
 fi
 
-# Edit miniserv.conf
-ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's/^allow=.*$/allow=$externalIP/' $miniservConfPath"
-echo "IP address updated successfully." "New IP: $externalIP"
+# Check if the allow= line exists in miniserv.conf
+#if ssh -p "$sshPort" "$sshUser@$sshHost" "grep -q 'allow=' $miniservConfPath"; then
+ 
+# Extract the allow line from miniserv.conf
+currentAllowLine=$(ssh -p "$sshPort" "$sshUser@$sshHost" "grep 'allow=' $miniservConfPath")
 
-#restart Webmin
+# Use regex to remove the old IP (from ipStore) from the allow line
+if [ -f "$ipStore" ]; then
+    oldIP=$(cat "$ipStore")
+    updatedAllowLine=$(echo "$currentAllowLine" | sed "s/$oldIP//")
+else
+    updatedAllowLine="$currentAllowLine"
+fi
+
+# Append the new IP address to the allow line
+updatedAllowLine="$updatedAllowLine $externalIP "
+
+# Update miniserv.conf with the updated allow line
+ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
+
+# Restart Webmin if indicated
 if $restartWebmin; then
   ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
   echo "Webmin restarted."
