@@ -28,7 +28,7 @@
 #============== customize variables here
 
 # Path to plink executable
-$plink = "B:\programs\PuTTYPortable\App\putty\PLINK.EXE"
+$plink = "PLINK.EXE"
 
 # Array of DNS servers to query
 $dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1", "1.1.1.1")
@@ -93,15 +93,9 @@ function Show-BurntToastNotification {
 
 	if (Get-Module -Name BurntToast -ListAvailable) {
 		New-BurntToastNotification -Text $Text -AppLogo $AppLogo
+	} else {
+		Log-Message -Message "BurntToast module is not installed. Cannot display system notifications."
 	}
-}
-	
-#============== Checks
-
-# Check if the BurntToast module is installed
-if (-not (Get-Module -Name BurntToast -ListAvailable)) {
-    # Write-Host "Warning: BurntToast module is not installed. System notifications will not be displayed."
-	Log-Message -Message "Warning: BurntToast module is not installed. System notifications will not be displayed."
 }
 	
 #============== Execution
@@ -109,17 +103,13 @@ if (-not (Get-Module -Name BurntToast -ListAvailable)) {
 try {
 	
 	#Start log session
-	Log-Message -Message "===== New Log Session ====="
-	
+	Log-Message -Message "===== New Log Session ====="	
 
     # Call the Get-ExternalIP function to retrieve the external IP
     $externalIP = Get-ExternalIP
 
-    # Export the $currentIP variable and log it to console
-    $currentIP = $externalIP
-	
-    # Write-Host "Current IP: $currentIP"
-	Log-Message -Message "Current IP: $currentIP"
+   # Log the current IP
+	Log-Message -Message "Current IP: $externalIP"
 
     # Read the old IP from the store file and Log it to console
     $oldIP = ""
@@ -150,7 +140,6 @@ try {
 	}
 	elseif ($oldIP -eq $externalIP) {
 		# If the old IP is the same as the new IP, exit the script
-		# Write-Host "$externalIP is already allowed in Webmin. Nothing to do."
 		Log-Message -Message "$externalIP is already allowed in Webmin. Nothing to do."
 		# Pause execution to keep the window open (debug feature)
         # Read-Host "Press Enter to exit..."
@@ -160,7 +149,6 @@ try {
 		# If the old IP doesn't exist, add the new IP to the array
 		$allowIPs += $externalIP
 	}
-
 
     # Reconstruct the 'allow=' line with the updated IP addresses
     $updatedAllowLine = "allow=" + ($allowIPs -join " ")
@@ -184,7 +172,7 @@ try {
     }
 
     # Update the IP store file with the current IP
-    $currentIP | Set-Content -Path $ipStore
+    $externalIP | Set-Content -Path $ipStore
 	# Write-Host "Most recent IP added to store file."
 	Log-Message -Message "Most recent IP added to store file." 
 
@@ -192,11 +180,9 @@ try {
 	
     # Handle errors
     $errorMessage = $_.Exception.Message
-
-	# Check if BurntToast is installed before attempting to display notifications
 	
 	# Notification when there's an error
-	New-BurntToastNotification -Text "An error occurred: $errorMessage" -AppLogo "ip_block.png"	
+	New-BurntToastNotification -Text "An error occurred: $errorMessage" -AppLogo "error.png"	
 	# Write-Host "Error: An error occurred: $errorMessage"
 	Log-Message -Message "Error: An error occurred: $errorMessage" 
 	
