@@ -28,7 +28,7 @@
 #============== customize variables here
 
 # Path to plink executable
-$plink = "C:\path\to\PLINK.EXE"
+$plink = "B:\programs\PuTTYPortable\App\putty\PLINK.EXE"
 
 # Array of DNS servers to query
 $dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1", "1.1.1.1")
@@ -36,49 +36,97 @@ $dnsServers = @("resolver1.opendns.com", "8.8.8.8", "208.67.222.222", "77.88.8.1
 # Define the file path for miniserv.conf
 $miniservConfPath = "/etc/webmin/miniserv.conf"
 
+# SSH into your remote VPS using the key stored in Pageant
 # SSH into your remote VPS using the key stored in SSH agent (Pageant)
 $sshHost = "<ip-number or server hostname>"
 $sshUser = "<username with write privileges to miniserv.conf>"
 $sshPort = "<port number>" # Usually 22, custom number is recommended
+$hostKey = "<Public Host Key Fingerprint in the key-type:host-key format>" # Probably necessary only the first time the script is ran
 
 # File to store the last known IP
 $ipStore = "$PSScriptRoot/.last_known_ip.txt"
 
-# May be necessary. Change this value depending on your experience.
+# Restart Webmin? May not work if set to false
 $restartWebmin = $true
 
-#============== end customization
+# Create log file? For debugging purposes
+$logFile = $true
 
+# Define a log file path
+$logFilePath = "$PSScriptRoot\script.log"
+
+#============== Functions
+
+# Function to log messages to a file
+function Log-Message {
+	param (
+		[string]$Message
+	)
+
+	$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+	$logEntry = "$timestamp - $Message"
+	
+	# do only if Logging is enabled
+	if ($logFile) {
+		$logEntry | Out-File -Append -FilePath $logFilePath
+	}
+}	
+
+# Query DNS servers to get the external IP address
+function Get-ExternalIP {
+	foreach ($dnsServer in $dnsServers) {
+		$externalIP = (Resolve-DnsName -Name myip.opendns.com -Server $dnsServer).IPAddress
+		if ($externalIP) {
+			return $externalIP
+		}
+	}
+	# Write-Host "Failed to retrieve external IP"
+	Log-Message -Message "Failed to retrieve external IP"
+}
+
+# Display BurntToast Notifications
+function Show-BurntToastNotification {
+	param(
+		[string]$Text,
+		[string]$AppLogo
+	)
+
+	if (Get-Module -Name BurntToast -ListAvailable) {
+		New-BurntToastNotification -Text $Text -AppLogo $AppLogo
+	}
+}
+	
+#============== Checks
 
 # Check if the BurntToast module is installed
 if (-not (Get-Module -Name BurntToast -ListAvailable)) {
-    Write-Host "Warning: BurntToast module is not installed. System notifications will not be displayed."
+    # Write-Host "Warning: BurntToast module is not installed. System notifications will not be displayed."
+	Log-Message -Message "Warning: BurntToast module is not installed. System notifications will not be displayed."
 }
+	
+#============== Execution
 
 try {
-    # Query DNS servers to get the external IP address
-    function Get-ExternalIP {
-        foreach ($dnsServer in $dnsServers) {
-            $externalIP = (Resolve-DnsName -Name myip.opendns.com -Server $dnsServer).IPAddress
-            if ($externalIP) {
-                return $externalIP
-            }
-        }
-        Write-Host "Failed to retrieve external IP"
-    }
+	
+	#Start log session
+	Log-Message -Message "===== New Log Session ====="
+	
 
     # Call the Get-ExternalIP function to retrieve the external IP
     $externalIP = Get-ExternalIP
 
     # Export the $currentIP variable and log it to console
     $currentIP = $externalIP
-    Write-Host "Current IP: $currentIP"
+	
+    # Write-Host "Current IP: $currentIP"
+	Log-Message -Message "Current IP: $currentIP"
 
     # Read the old IP from the store file and Log it to console
     $oldIP = ""
     if (Test-Path -Path $ipStore) {
         $oldIP = Get-Content -Path $ipStore
-		Write-Host "Last logged IP: $oldIP"
+		# Write-Host "Last logged IP: $oldIP"
+		Log-Message -Message "Last logged IP: $oldIP"
     }
 
 	# Use Plink to check miniserv.conf content
@@ -102,9 +150,10 @@ try {
 	}
 	elseif ($oldIP -eq $externalIP) {
 		# If the old IP is the same as the new IP, exit the script
-		Write-Host "$externalIP is already allowed in Webmin. Nothing to do."
+		# Write-Host "$externalIP is already allowed in Webmin. Nothing to do."
+		Log-Message -Message "$externalIP is already allowed in Webmin. Nothing to do."
 		# Pause execution to keep the window open (debug feature)
-        	# Read-Host "Press Enter to exit..."
+        # Read-Host "Press Enter to exit..."
 		exit
 	}
 	else {
@@ -119,22 +168,25 @@ try {
 	# Use Plink to update miniserv.conf
 	$sshCommand = "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
 	Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshCommand""" | Out-Null
-	Write-Host "IP address updated successfully."
-
+	
+	# Show notification
+	Show-BurntToastNotification -Text "IP address updated successfully.`nNew IP: $externalIP" -AppLogo "ip.png"
+	# Write-Host "IP address updated successfully."
+	Log-Message -Message "IP address updated successfully." 
     
     # Restart Webmin if so specified
     if ($restartWebmin) {
         Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""systemctl restart webmin"""
-        Write-Host "Webmin restarted."
-	    # Check if BurntToast is installed before attempting to display notification
-	    if (Get-Module -Name BurntToast -ListAvailable) {
-    	    New-BurntToastNotification -Text "Webmin restarted." -AppLogo "restart_services.png"
-    	}
+        
+	    # Show notification	    
+		Show-BurntToastNotification -Text "Webmin restarted." -AppLogo "webmin.png"    	
+		Write-Host "Webmin restarted."
     }
 
     # Update the IP store file with the current IP
     $currentIP | Set-Content -Path $ipStore
-	Write-Host "Most recent IP added to store file."
+	# Write-Host "Most recent IP added to store file."
+	Log-Message -Message "Most recent IP added to store file." 
 
 } catch {
 	
@@ -142,13 +194,11 @@ try {
     $errorMessage = $_.Exception.Message
 
 	# Check if BurntToast is installed before attempting to display notifications
-	if (Get-Module -Name BurntToast -ListAvailable) {
-		# Notification when there's an error
-		New-BurntToastNotification -Text "An error occurred: $errorMessage" -AppLogo "ip_block.png"
-	}
-		
-	# Show console message anyhow
-	Write-Host "Error: An error occurred: $errorMessage"
+	
+	# Notification when there's an error
+	New-BurntToastNotification -Text "An error occurred: $errorMessage" -AppLogo "ip_block.png"	
+	# Write-Host "Error: An error occurred: $errorMessage"
+	Log-Message -Message "Error: An error occurred: $errorMessage" 
 	
 } 
 
