@@ -49,6 +49,7 @@ $restartWebmin = $true
 
 #============== end customization
 
+
 # Check if the BurntToast module is installed
 if (-not (Get-Module -Name BurntToast -ListAvailable)) {
     Write-Host "Warning: BurntToast module is not installed. System notifications will not be displayed."
@@ -73,45 +74,53 @@ try {
     $currentIP = $externalIP
     Write-Host "Current IP: $currentIP"
 
-    # Read the old IP from the store file, if it exists
+    # Read the old IP from the store file and Log it to console
     $oldIP = ""
     if (Test-Path -Path $ipStore) {
         $oldIP = Get-Content -Path $ipStore
+		Write-Host "Last logged IP: $oldIP"
     }
 
-    # If the old IP is the same as the current IP, nothing to do
-    if ($oldIP -eq $currentIP) {
-        Write-Host "$currentIP is already allowed in Webmin. Nothing to do."
-        # Pause execution to keep the window open (debug feature)
-        # Read-Host "Press Enter to exit..."
-        exit
-    }
-
-    # SSH command to edit miniserv.conf
-    $sshEdit = "sed -i 's/^allow=.*$/allow=$currentIP/'"
-
-    # Use Plink to check miniserv.conf content
+	# Use Plink to check miniserv.conf content
     $miniservConfContent = Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort cat $miniservConfPath"
-
-    # Check if the current IP is already in the miniserv.conf content
-    $ipAlreadyExists = $miniservConfContent -match "allow=$currentIP"
-
-    # If the IP already exists, remove it
-    if ($ipAlreadyExists) {
-        $miniservConfContent = $miniservConfContent -replace "allow=$currentIP", ""
-    }
-
-    # Append the new IP to the miniserv.conf content
-    $miniservConfContent += "allow=$currentIP"
-
-    # Use Plink to update miniserv.conf
-    Start-Process -FilePath "$plink" -ArgumentList "-ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshEdit"" $miniservConfPath" -NoNewWindow -Wait
-    Write-Host "Notification: IP address updated successfully. New IP: $currentIP"
+	
+    # Regular expression to match the 'allow=' line and its IP addresses
+    $regex = 'allow=([^\n]*)'
     
-    # Check if BurntToast is installed before attempting to display notification
-    if (Get-Module -Name BurntToast -ListAvailable) {
-        New-BurntToastNotification -Text "IP address updated successfully.`nNew IP: $currentIP" -AppLogo "ip.png"
-    }
+    # Get the current 'allow=' line from miniserv.conf
+    $currentAllowLine = ($miniservConfContent | Select-String -Pattern $regex).Matches.Groups[1].Value
+
+    # Split the current 'allow=' line into an array of IP addresses/hostnames
+    $allowIPs = $currentAllowLine.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
+
+    # Check if the old IP exists in the array of IP addresses
+    $oldIPIndex = $allowIPs.IndexOf($oldIP)
+
+    # Check if the old IP exists and is different from the new IP
+	if ($oldIPIndex -ne -1 -and $oldIP -ne $externalIP) {
+		$allowIPs[$oldIPIndex] = $externalIP
+	}
+	elseif ($oldIP -eq $externalIP) {
+		# If the old IP is the same as the new IP, exit the script
+		Write-Host "$externalIP is already allowed in Webmin. Nothing to do."
+		# Pause execution to keep the window open (debug feature)
+        	# Read-Host "Press Enter to exit..."
+		exit
+	}
+	else {
+		# If the old IP doesn't exist, add the new IP to the array
+		$allowIPs += $externalIP
+	}
+
+
+    # Reconstruct the 'allow=' line with the updated IP addresses
+    $updatedAllowLine = "allow=" + ($allowIPs -join " ")
+
+	# Use Plink to update miniserv.conf
+	$sshCommand = "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
+	Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshCommand""" | Out-Null
+	Write-Host "IP address updated successfully."
+
     
     # Restart Webmin if so specified
     if ($restartWebmin) {
@@ -119,12 +128,13 @@ try {
         Write-Host "Webmin restarted."
 	    # Check if BurntToast is installed before attempting to display notification
 	    if (Get-Module -Name BurntToast -ListAvailable) {
-    	    New-BurntToastNotification -Text "Webmin restarted." -AppLogo "ip.png"
+    	    New-BurntToastNotification -Text "Webmin restarted." -AppLogo "restart_services.png"
     	}
     }
 
     # Update the IP store file with the current IP
-    $currentIP | Set-Content -Path $ipStore    
+    $currentIP | Set-Content -Path $ipStore
+	Write-Host "Most recent IP added to store file."
 
 } catch {
 	
