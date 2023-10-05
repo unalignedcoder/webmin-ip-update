@@ -24,6 +24,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
 #============== customize variables here
 
 # Path to plink executable
@@ -44,7 +45,7 @@ $sshPort = "<port number>" # Usually 22, custom number is recommended
 $ipStore = "$PSScriptRoot/.last_known_ip.txt"
 
 # May be necessary. Change this value depending on your experience.
-$restartWebmin = true
+$restartWebmin = $true
 
 #============== end customization
 
@@ -116,8 +117,8 @@ try {
     if ($restartWebmin) {
         Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""systemctl restart webmin"""
         Write-Host "Webmin restarted."
-	# Check if BurntToast is installed before attempting to display notification
-	if (Get-Module -Name BurntToast -ListAvailable) {
+	    # Check if BurntToast is installed before attempting to display notification
+	    if (Get-Module -Name BurntToast -ListAvailable) {
     	    New-BurntToastNotification -Text "Webmin restarted." -AppLogo "ip.png"
     	}
     }
@@ -131,15 +132,15 @@ try {
     $errorMessage = $_.Exception.Message
 
 	# Check if BurntToast is installed before attempting to display notifications
-		if (Get-Module -Name BurntToast -ListAvailable) {
-			# Notification when there's an error
-			New-BurntToastNotification -Text "An error occurred: $errorMessage" -AppLogo "ip_block.png"
-		}
+	if (Get-Module -Name BurntToast -ListAvailable) {
+		# Notification when there's an error
+		New-BurntToastNotification -Text "An error occurred: $errorMessage" -AppLogo "ip_block.png"
+	}
 		
-	#show console message anyhow
+	# Show console message anyhow
 	Write-Host "Error: An error occurred: $errorMessage"
 	
 } 
 
 # Pause execution to keep the window open (debug feature)
- Read-Host "Press Enter to exit..."
+# Read-Host "Press Enter to exit..."
