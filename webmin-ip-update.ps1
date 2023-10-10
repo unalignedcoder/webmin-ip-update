@@ -68,7 +68,7 @@ function Log-Message {
 	
 	# do only if Logging is enabled
 	if ($logFile) {
-		$logEntry | Out-File -Append -FilePath $logFilePath
+		$logEntry | Out-File -Append -FilePath $logFilePath -Encoding UTF8
 	}
 }	
 
@@ -97,8 +97,49 @@ function Show-BurntToastNotification {
 		Log-Message -Message "BurntToast module is not installed. Cannot display system notifications."
 	}
 }
-	
+
+#==============  SSH Agents checks (it's either Pageant or OpenSSH)
+
+# Check if Pageant is running
+$processPageant = Get-Process -Name "Pageant" -ErrorAction SilentlyContinue
+
+if ($processPageant -ne $null) {
+    # Pageant is running, continue with the script
+    Log-Message -Message "Pageant is running. Moving on."
+}
+elseif ($env:SSH_AUTH_SOCK -ne $null) {
+    # OpenSSH agent is running
+
+    # Check if SSH keys are loaded in OpenSSH agent
+    $sshKeysLoaded = $null
+    try {
+        $sshKeysLoaded = ssh-add -l 2>$null
+    } catch {
+        # Error occurred, likely due to no keys loaded
+        $sshKeysLoaded = $null
+    }
+
+    if ($sshKeysLoaded -eq $null) {
+        # No keys loaded, provide a warning and exit
+        $errorMessage = "OpenSSH agent is running, but no SSH keys are loaded. Please load your SSH keys."
+        Log-Message -Message "Warning: $errorMessage"
+        New-BurntToastNotification -Text "Warning: $errorMessage" -AppLogo "error.png"
+        exit 1  # You can choose an appropriate exit code
+    } else {
+        # SSH keys are loaded in OpenSSH agent
+        Log-Message -Message "SSH keys are loaded in OpenSSH agent. Moving on."
+    }
+}
+else {
+    # Neither Pageant nor OpenSSH agent is running, exit with a warning
+    $errorMessage = "Could not find any SSH Agent running. Please start an SSH agent and load your SSH keys before running this script."
+    Log-Message -Message "Warning: $errorMessage"
+    New-BurntToastNotification -Text "Warning: $errorMessage" -AppLogo "error.png"
+    exit 1  # You can choose an appropriate exit code
+}
+
 #============== Execution
+
 
 try {
 	
@@ -157,18 +198,16 @@ try {
 	$sshCommand = "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
 	Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""$sshCommand""" | Out-Null
 	
-	# Show notification
+	# Show notification & log
 	Show-BurntToastNotification -Text "IP address updated successfully.`nNew IP: $externalIP" -AppLogo "ip.png"
-	# Write-Host "IP address updated successfully."
 	Log-Message -Message "IP address updated successfully." 
     
     # Restart Webmin if so specified
     if ($restartWebmin) {
-        Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""systemctl restart webmin"""
-        
-	    # Show notification	    
+        Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""systemctl restart webmin"""        
+	    # Show notification	& Log    
 		Show-BurntToastNotification -Text "Webmin restarted." -AppLogo "webmin.png"    	
-		Write-Host "Webmin restarted."
+		Log-Message -Message "Webmin restarted."
     }
 
     # Update the IP store file with the current IP
