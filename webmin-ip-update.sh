@@ -57,143 +57,139 @@ logFile="true"
 # Define a log file path
 logFilePath="$scriptDir/script.log"
 
-
 #============== Functions
 
 # Function to log messages to a file
 function Log-Message {
-	local Message="$1"
-	
-	timestamp=$(date "+%Y-%m-%d %H:%M:%S")
-	
-	# Log if enabled
-    if [ "$logFile" == "true" ]; then
-        echo "$timestamp - $Message" >> "$logFilePath"
+    local Message="$1"
+    local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+    local logEntry="$timestamp - $Message"
+    
+    # Do only if Logging is enabled
+    if [ "$logFile" = true ]; then
+        echo "$logEntry" >> "$logFilePath"
     fi
-}
+}   
 
 # Query DNS servers to get the external IP address
 function Get-ExternalIP {
-	for dnsServer in "${dnsServers[@]}"; do
-		externalIP=$(dig +short myip.opendns.com @${dnsServer})
-		if [[ -n $externalIP ]]; then
-			echo "$externalIP"
-			return
-		fi
-	done
-	# echo "Failed to retrieve external IP"
-	Log-Message "Failed to retrieve external IP"
+    for dnsServer in "${dnsServers[@]}"; do
+        externalIP=$(dig +short @"$dnsServer" myip.opendns.com)
+        if [ -n "$externalIP" ]; then
+            echo "$externalIP"
+            return
+        fi
+    done
+    Log-Message "Failed to retrieve external IP"
+	Show-Notification "Error: Failed to retrieve external IP." "error.png"
+    exit 1	
 }
 
-# Display desktop notifications (customize this for your desktop environment)
+# Display desktop notifications 
+# Display desktop notifications using available tools
 function Show-Notification {
-	local Text="$1",
-	local Icon="$2"
-	
-	if command -v notify-send &>/dev/null; then
-		notify-send -i "$icon" "$Text"
-	else Log-Message "notify-send is not installed. Cannot display system notifications."
-	fi
+    local Title="Webmin Allowed IP update"
+    local Text="$1"
+    local Icon="$2"
+
+    if command -v notify-send &>/dev/null; then
+        notify-send "$Title" "$Text" -i "$Icon"
+    elif command -v kdialog &>/dev/null; then
+        kdialog --passivepopup "$Text" 5 --icon "$Icon" --title "$Title"
+    elif command -v zenity &>/dev/null; then
+        zenity --info --title "$Title" --text="$Text" --window-icon="$Icon"
+    else
+        Log-Message "No notification tool (notify-send, kdialog, or zenity) is installed. Cannot display system notifications."
+    fi
 }
 
 # Define a function to handle errors
 function Handle-Error {
     local errorMessage="$1"
+	
     Log-Message "Error: An error occurred: $errorMessage"
     Show-Notification "Error: An error occurred: $errorMessage" "error.png"
     exit 1
 }
 
-# Use try-catch-like mechanism
-function try {
-    "$@"
-    local exit_status=$?
-    if [ $exit_status -ne 0 ]; then
-        Handle-Error "Command '$*' failed with exit status $exit_status"
-    fi
-}
-
 #============== Execution
 
-try {
+# Start log session
+Log-Message "===== New Log Session ====="
+Log-Message "Script: Bash Shell"
 
-	# Start log session
-	Log-Message "===== New Log Session ====="
+# Call the Get-ExternalIP function to retrieve the external IP
+externalIP=$(Get-ExternalIP)
 
-	# Call the Get-ExternalIP function to retrieve the external IP
-	externalIP=$(Get-ExternalIP)
+# Log the current IP
+Log-Message "Current IP: $externalIP"
 
-	# Log the current IP
-	Log-Message "Current IP: $externalIP"
+# Read the old IP from the store file and log it
+oldIP=""
+if [ -f "$ipStore" ]; then
+	oldIP=$(cat "$ipStore")
+	Log-Message "Last logged IP: $oldIP"
+fi
 
-	# Read the old IP from the store file and log it
-	oldIP=""
-	if [ -f "$ipStore" ]; then
-		oldIP=$(cat "$ipStore")
-		Log-Message "Last logged IP: $oldIP"
+# Use sed to check miniserv.conf content (customize this part for your setup)
+currentAllowLine=$(ssh -p "$sshPort" "$sshUser@$sshHost" "grep 'allow=' $miniservConfPath")
+
+# Regular expression to match the 'allow=' line and its IP addresses
+regex='allow=([^\n]*)'
+
+# Get the current 'allow=' line from miniserv.conf
+if [[ "$currentAllowLine" =~ $regex ]]; then
+	currentAllowLine="${BASH_REMATCH[1]}"
+fi
+
+# Split the current 'allow=' line into an array of IP addresses/hostnames
+IFS=' ' read -ra allowIPs <<< "$currentAllowLine"
+
+# Check if the old IP exists in the array of IP addresses
+oldIPIndex=-1
+for i in "${!allowIPs[@]}"; do
+	if [[ "${allowIPs[i]}" == "$oldIP" ]]; then
+		oldIPIndex=$i
+		break
 	fi
+done
 
-	# Use sed to check miniserv.conf content (customize this part for your setup)
-	currentAllowLine=$(ssh -p "$sshPort" "$sshUser@$sshHost" "grep 'allow=' $miniservConfPath")
+# Check if the old IP exists and is different from the new IP
+if [ "$oldIPIndex" -ne -1 ] && [ "$oldIP" != "$externalIP" ]; then
+	allowIPs["$oldIPIndex"]=$externalIP
+elif [ "$oldIP" == "$externalIP" ]; then
+	# If the old IP is the same as the new IP, exit the script
+	Log-Message "$externalIP is already allowed in Webmin. Nothing to do."
+	# Pause execution to keep the window open (debug feature)
+	# read -p "Press Enter to exit..."
+	exit
+else
+	# If the old IP doesn't exist, add the new IP to the array
+	allowIPs+=("$externalIP")
+fi
 
-	# Regular expression to match the 'allow=' line and its IP addresses
-	regex='allow=([^\n]*)'
+# Reconstruct the 'allow=' line with the updated IP addresses
+updatedAllowLine="allow=$(IFS=" "; echo "${allowIPs[*]}")"
 
-	# Get the current 'allow=' line from miniserv.conf
-	if [[ "$currentAllowLine" =~ $regex ]]; then
-		currentAllowLine="${BASH_REMATCH[1]}"
-	fi
+# Use sed to update miniserv.conf (customize this part for your setup)
+ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
 
-	# Split the current 'allow=' line into an array of IP addresses/hostnames
-	IFS=' ' read -ra allowIPs <<< "$currentAllowLine"
+# Show notification
+Log-Message "IP address updated successfully.New IP: $externalIP"
+Show-Notification "IP address updated successfully.\nNew IP: $externalIP" "ip.png"
 
-	# Check if the old IP exists in the array of IP addresses
-	oldIPIndex=-1
-	for i in "${!allowIPs[@]}"; do
-		if [[ "${allowIPs[i]}" == "$oldIP" ]]; then
-			oldIPIndex=$i
-			break
-		fi
-	done
-
-	# Check if the old IP exists and is different from the new IP
-	if [ "$oldIPIndex" -ne -1 ] && [ "$oldIP" != "$externalIP" ]; then
-		allowIPs["$oldIPIndex"]=$externalIP
-	elif [ "$oldIP" == "$externalIP" ]; then
-		# If the old IP is the same as the new IP, exit the script
-		Log-Message "$externalIP is already allowed in Webmin. Nothing to do."
-		# Pause execution to keep the window open (debug feature)
-		# read -p "Press Enter to exit..."
-		exit
-	else
-		# If the old IP doesn't exist, add the new IP to the array
-		allowIPs+=("$externalIP")
-	fi
-
-	# Reconstruct the 'allow=' line with the updated IP addresses
-	updatedAllowLine="allow=$(IFS=" "; echo "${allowIPs[*]}")"
-
-	# Use sed to update miniserv.conf (customize this part for your setup)
-	ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
-
-	# Show notification
-	Log-Message "IP address updated successfully.\nNew IP: $externalIP"
-	Show-Notification "IP address updated successfully.\nNew IP: $externalIP" "ip.png"
+# Restart Webmin if specified
+if $restartWebmin; then
+	ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
 	
-	# Restart Webmin if specified
-	if $restartWebmin; then
-		ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
-		
-		# Show notification
-		Log-Message "Webmin restarted."
-		Show-Notification "Webmin restarted." "webmin.png"
-	fi
+	# Show notification
+	Log-Message "Webmin restarted."
+	Show-Notification "Webmin restarted." "webmin.png"
+fi
 
-	# Update the IP store file with the current IP
-	echo "$externalIP" > "$ipStore"
-	Log-Message "Most recent IP added to store file."
-
-} 
+# Update the IP store file with the current IP
+echo "$externalIP" > "$ipStore"
+Log-Message "Most recent IP added to store file."
 
 # Pause execution to keep the window open (debug feature)
 # read -p "Press Enter to exit..."
