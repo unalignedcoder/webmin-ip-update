@@ -5,7 +5,7 @@ It is available in [PowerShell](https://github.com/unalignedcoder/webmin-ip-upda
 ## Why this script
 If you connect to your Webmin/Virtualmin instance remotely (for example on a VPS) from a **dynamic IP** or changing **VPN**, this script is for you.
 
-On [Webmin](https://github.com/webmin/webmin), you can decide to <ins>allow connections only from selected ip numbers or hostnames</ins>. 
+On Webmin, you can decide to <ins>allow connections only from selected ip numbers or hostnames</ins>. 
 This is a great security feature, however useless if you have a dynamic IP, like most people do, or if you use a random VPN machine to connect.
 
 Previously, to make use of this feature you'd have to subscribe to a DDNS service such as Dynu or NoIP, have them associate a given hostname to your current IP number, and set up Webmin to only allow that particular hostname.
