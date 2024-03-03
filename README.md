@@ -16,7 +16,7 @@ Furthermore, most likely it means allowing their app to always run in the backgr
 Not anymore.
 
 ## What this script does:
-1) It will discover your IP number against a free DNS service such as OpenDNS or Google;
+1) It will discover your IP number against a free IP service such as Icanhazip or ipify;
 2) Connect to your remote server, retrieve the `/etc/webim/miniserv.conf` file Webmin uses for settings;
 3) Check whether the `allow=` line already contains your current IP number (if yes, exit the script);
 4) If not, modify it so that the IP number is current (it will append the current IP to the list, if multiple IPs/Hostnames are allowed, removing the previous dynamic IP number);
@@ -26,7 +26,7 @@ Not anymore.
 On Windows, this script connects to your server via SSH using Plink (part of the [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) package).
 Therefore, it requires you to:
 1) Have Putty present on your machine;
-2) Customize the script, providing the path to the Plink executable (if not in `$PATH`);
+2) Customize the script, providing the path to the Plink executable (if not in `$PATH`, or the script directory);
 3) If you want the script to send a system notification when the IP has been changed, you need to make sure the [BurntToast](https://github.com/Windos/BurntToast) extension to PowerShell is installed.
 4) To run a PowerShell script on Windows, you need to set Execution Policy in PowerShell, using this command: `Set-ExecutionPolicy RemoteSigned` as Administrator.
 
@@ -35,7 +35,7 @@ Furthermore, whether you are on Windows or Linux, you will have to customize the
    - IP number/hostname of remote server
    - username (user shoud have write privileges to `miniserv.conf`)
    - SSH port (usually `22`)
-   - Host Key public fingerprint (in the `key-type:host-key` format; can be retrieved via SSH or from within Webmin SSH server settings. The host public key honestly is not always necessary, once it is saved in the SSH cache. I've found this to be a requirement only under Windows, and probably only the first time the script is ran.)
+   - Host Key public fingerprint (in the `key-type:host-key` format; can be retrieved via SSH or from within Webmin SSH server settings. The host public key honestly is not always necessary, once it is saved in the SSH cache. I've found this to be a requirement only under Windows, and probably only the first time the script runs.)
 
 Most importantly, it is essential that you have **a running SSH agent** (such as Pageant under Windows, also included in Putty) with the respective SSH-RSA key loaded for the user[^1]. 
 (I assume you don't want to write down sensitive credentials inside this script.)
