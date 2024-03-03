@@ -33,8 +33,9 @@ scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 #============== Customize variables HERE
 
-# Array of DNS servers to query
-dnsServers=("resolver1.opendns.com" "8.8.8.8" "208.67.222.222" "77.88.8.1" "1.1.1.1")
+# Array of IP services to query 
+# thanks to https://www.scriptinglibrary.com/languages/powershell/how-to-get-your-external-ip-with-powershell-core-using-a-restapi/
+ipServices=("https://icanhazip.com", "https://api.ipify.org", "https://ipinfo.io/json | select-object -ExpandProperty ip", "https://jsyk.it/ip")
 
 # Define the file path for miniserv.conf
 miniservConfPath="/etc/webmin/miniserv.conf"
@@ -51,11 +52,18 @@ ipStore="$scriptDir/.last_known_ip.txt"
 # Restart Webmin? May not work if set to false
 restartWebmin="true"
 
+# Should multiple IPs be allowed?
+multipleIPs="false"
+
 # Create log file? For debugging purposes
 logFile="true"
 
+#should the log file be printed in reverse order?
+logReverse="true"
+
 # Define a log file path
 logFilePath="$scriptDir/script.log"
+
 
 #============== Functions
 
@@ -67,25 +75,36 @@ function Log-Message {
     
     # Do only if Logging is enabled
     if [ "$logFile" = true ]; then
-        echo "$logEntry" >> "$logFilePath"
+		# should the log be reversed?
+		if [ "$logReverse" = true ]; then		
+			echo "$logEntry" | sed "1i$logEntry" > "$logFilePath.tmp"
+			mv "$logFilePath.tmp" "$logFilePath"
+		else
+			echo "$logEntry" >> "$logFilePath"
+		fi
     fi
-}   
-
-# Query DNS servers to get the external IP address
-function Get-ExternalIP {
-    for dnsServer in "${dnsServers[@]}"; do
-        externalIP=$(dig +short @"$dnsServer" myip.opendns.com)
-        if [ -n "$externalIP" ]; then
-            echo "$externalIP"
-            return
-        fi
-    done
-    Log-Message "Failed to retrieve external IP"
-	Show-Notification "Error: Failed to retrieve external IP." "error.png"
-    exit 1	
 }
 
-# Display desktop notifications 
+# Query IP services to get the external IP address
+function GetExternalIP() {
+    for ipService in "${ipServices[@]}"; do
+		#| tr -d '[:space:]' adds trimming to the output
+        externalIP=$(curl -s --max-time 10 "$ipService" | tr -d '[:space:]')
+        if [ -n "$externalIP" ]; then
+            echo "Your IP appears to be $externalIP"
+            return 0
+        else
+            errorMessage="Failed to retrieve external IP from $ipService. Error: $?"
+            LogMessage "$errorMessage"
+        fi
+    done
+
+    # Failed to retrieve external IP from any IP service
+    LogMessage "Failed to retrieve external IP from any IP service. Exiting."
+    exit 1
+}
+
+
 # Display desktop notifications using available tools
 function Show-Notification {
     local Title="Webmin Allowed IP update"
@@ -114,6 +133,7 @@ function Handle-Error {
 
 #============== Execution
 
+
 # Start log session
 Log-Message "===== New Log Session ====="
 Log-Message "Script: Bash Shell"
@@ -131,7 +151,7 @@ if [ -f "$ipStore" ]; then
 	Log-Message "Last logged IP: $oldIP"
 fi
 
-# Use sed to check miniserv.conf content (customize this part for your setup)
+# Use sed to check miniserv.conf content
 currentAllowLine=$(ssh -p "$sshPort" "$sshUser@$sshHost" "grep 'allow=' $miniservConfPath")
 
 # Regular expression to match the 'allow=' line and its IP addresses
@@ -168,8 +188,14 @@ else
 	allowIPs+=("$externalIP")
 fi
 
-# Reconstruct the 'allow=' line with the updated IP addresses
-updatedAllowLine="allow=$(IFS=" "; echo "${allowIPs[*]}")"
+# Check if preserving multiple allowed IPs is necessary
+if [ "$multipleIPs" = true ]; then
+    # Reconstruct the 'allow=' line with the updated IP addresses
+    updatedAllowLine="allow=$(IFS=" "; echo "${allowIPs[*]}")"
+else
+    # If multiple IPs are not needed, only include the most recent one
+    updatedAllowLine="allow=$externalIP"
+fi
 
 # Use sed to update miniserv.conf (customize this part for your setup)
 ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
