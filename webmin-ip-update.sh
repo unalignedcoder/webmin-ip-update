@@ -27,14 +27,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+<<<<<<< HEAD
 #============== version
 
-scriptVersion="1.0.1"
+scriptVersion="1.0.2"
 
+=======
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 #============== Paths
 
 scriptDir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+<<<<<<< HEAD
 #============== Separate SSH Config file
 
 # Load configuration from an external file for privacy reasons
@@ -57,11 +61,26 @@ hostKey="$HOST_KEY"
 
 # Array of DNS servers to query
 # dnsServers=("resolver1.opendns.com" "8.8.8.8" "208.67.222.222" "77.88.8.1" "1.1.1.1")
+=======
+#============== Customize variables HERE
+
+# Array of IP services to query 
+# thanks to https://www.scriptinglibrary.com/languages/powershell/how-to-get-your-external-ip-with-powershell-core-using-a-restapi/
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 ipServices=("https://icanhazip.com", "https://api.ipify.org", "https://ipinfo.io/json | select-object -ExpandProperty ip", "https://jsyk.it/ip")
 
 # Define the file path for miniserv.conf
 miniservConfPath="/etc/webmin/miniserv.conf"
 
+<<<<<<< HEAD
+=======
+# SSH into your remote VPS using the key stored in Pageant
+sshHost="<ip-number or server hostname>"
+sshUser="<username with write privileges to miniserv.conf>"
+sshPort="<port number>" # Usually 22, custom number is recommended
+hostKey="<Public Host Key Fingerprint in the key-type:host-key format>" # Probably necessary only the first time the script is run
+
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 # File to store the last known IP
 ipStore="$scriptDir/.last_known_ip.txt"
 
@@ -83,6 +102,7 @@ logFilePath="$scriptDir/script.log"
 
 #============== Functions
 
+<<<<<<< HEAD
 # Function to log messages in reverse order
 function Write-Log {
     local Message="$1"
@@ -97,6 +117,23 @@ function Write-Log {
         else
             echo "$logEntry" >> "$logFilePath"
         fi
+=======
+# Function to log messages to a file
+function Log-Message {
+    local Message="$1"
+    local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+    local logEntry="$timestamp - $Message"
+    
+    # Do only if Logging is enabled
+    if [ "$logFile" = true ]; then
+		# should the log be reversed?
+		if [ "$logReverse" = true ]; then		
+			echo "$logEntry" | sed "1i$logEntry" > "$logFilePath.tmp"
+			mv "$logFilePath.tmp" "$logFilePath"
+		else
+			echo "$logEntry" >> "$logFilePath"
+		fi
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
     fi
 }
 
@@ -119,6 +156,10 @@ function GetExternalIP() {
     exit 1
 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 # Display desktop notifications using available tools
 function Show-Notification {
     local Title="Webmin Allowed IP update"
@@ -132,7 +173,11 @@ function Show-Notification {
     elif command -v zenity &>/dev/null; then
         zenity --info --title "$Title" --text="$Text" --window-icon="$Icon"
     else
+<<<<<<< HEAD
         Write-Log "No notification tool (notify-send, kdialog, or zenity) is installed. Cannot display system notifications."
+=======
+        Log-Message "No notification tool (notify-send, kdialog, or zenity) is installed. Cannot display system notifications."
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
     fi
 }
 
@@ -140,11 +185,16 @@ function Show-Notification {
 function Handle-Error {
     local errorMessage="$1"
 	
+<<<<<<< HEAD
     Write-Log "Error: An error occurred: $errorMessage"
+=======
+    Log-Message "Error: An error occurred: $errorMessage"
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
     Show-Notification "Error: An error occurred: $errorMessage" "error.png"
     exit 1
 }
 
+<<<<<<< HEAD
 # Function to check if KeePassXC is running and launch it if not
 function Open-KeePassXC {
     if pgrep -x "keepassxc" > /dev/null; then
@@ -224,12 +274,31 @@ externalIP=$(GetExternalIP)
 
 # Log the current IP
 Write-Log "Current IP: $externalIP"
+=======
+#============== Execution
+
+
+# Start log session
+Log-Message "===== New Log Session ====="
+Log-Message "Script: Bash Shell"
+
+# Call the Get-ExternalIP function to retrieve the external IP
+externalIP=$(Get-ExternalIP)
+
+# Log the current IP
+Log-Message "Current IP: $externalIP"
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 
 # Read the old IP from the store file and log it
 oldIP=""
 if [ -f "$ipStore" ]; then
+<<<<<<< HEAD
     oldIP=$(cat "$ipStore")
     Write-Log "Last logged IP: $oldIP"
+=======
+	oldIP=$(cat "$ipStore")
+	Log-Message "Last logged IP: $oldIP"
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 fi
 
 # Use sed to check miniserv.conf content
@@ -240,7 +309,11 @@ regex='allow=([^\n]*)'
 
 # Get the current 'allow=' line from miniserv.conf
 if [[ "$currentAllowLine" =~ $regex ]]; then
+<<<<<<< HEAD
     currentAllowLine="${BASH_REMATCH[1]}"
+=======
+	currentAllowLine="${BASH_REMATCH[1]}"
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 fi
 
 # Split the current 'allow=' line into an array of IP addresses/hostnames
@@ -249,14 +322,22 @@ IFS=' ' read -ra allowIPs <<< "$currentAllowLine"
 # Check if the old IP exists in the array of IP addresses
 oldIPIndex=-1
 for i in "${!allowIPs[@]}"; do
+<<<<<<< HEAD
     if [[ "${allowIPs[i]}" == "$oldIP" ]]; then
         oldIPIndex=$i
         break
     fi
+=======
+	if [[ "${allowIPs[i]}" == "$oldIP" ]]; then
+		oldIPIndex=$i
+		break
+	fi
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 done
 
 # Check if the old IP exists and is different from the new IP
 if [ "$oldIPIndex" -ne -1 ] && [ "$oldIP" != "$externalIP" ]; then
+<<<<<<< HEAD
     allowIPs["$oldIPIndex"]=$externalIP
 elif [ "$oldIP" == "$externalIP" ]; then
     # If the old IP is the same as the new IP, exit the script
@@ -267,6 +348,18 @@ elif [ "$oldIP" == "$externalIP" ]; then
 else
     # If the old IP doesn't exist, add the new IP to the array
     allowIPs+=("$externalIP")
+=======
+	allowIPs["$oldIPIndex"]=$externalIP
+elif [ "$oldIP" == "$externalIP" ]; then
+	# If the old IP is the same as the new IP, exit the script
+	Log-Message "$externalIP is already allowed in Webmin. Nothing to do."
+	# Pause execution to keep the window open (debug feature)
+	# read -p "Press Enter to exit..."
+	exit
+else
+	# If the old IP doesn't exist, add the new IP to the array
+	allowIPs+=("$externalIP")
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 fi
 
 # Check if preserving multiple allowed IPs is necessary
@@ -282,24 +375,45 @@ fi
 ssh -p "$sshPort" "$sshUser@$sshHost" "sed -i 's|^allow=.*|$updatedAllowLine|' $miniservConfPath"
 
 # Show notification
+<<<<<<< HEAD
 Write-Log "IP address updated successfully. New IP: $externalIP"
+=======
+Log-Message "IP address updated successfully.New IP: $externalIP"
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 Show-Notification "IP address updated successfully.\nNew IP: $externalIP" "ip.png"
 
 # Restart Webmin if specified
 if $restartWebmin; then
+<<<<<<< HEAD
     ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
     
     # Show notification
     Write-Log "Webmin restarted."
     Show-Notification "Webmin restarted." "webmin.png"
+=======
+	ssh -p "$sshPort" "$sshUser@$sshHost" "systemctl restart webmin"
+	
+	# Show notification
+	Log-Message "Webmin restarted."
+	Show-Notification "Webmin restarted." "webmin.png"
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 fi
 
 # Update the IP store file with the current IP
 echo "$externalIP" > "$ipStore"
+<<<<<<< HEAD
 Write-Log "Most recent IP added to store file."
+=======
+Log-Message "Most recent IP added to store file."
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 
 # Pause execution to keep the window open (debug feature)
 # read -p "Press Enter to exit..."
 
+<<<<<<< HEAD
 # Exit normally if no errors occurred
 exit 0
+=======
+# exit normally if no errors occurred
+exit 0
+>>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
