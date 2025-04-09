@@ -2,8 +2,9 @@ This script automatically changes the allowed IP on [Webmin](https://github.com/
 
 It is available in [PowerShell](https://github.com/unalignedcoder/webmin-ip-update/blob/main/webmin-ip-update.ps1) and [Bash Shell](https://github.com/unalignedcoder/webmin-ip-update/blob/main/webmin-ip-update.sh).
 
+If you connect to your Webmin/Virtualmin instance remotely (for example on a VPS) from a **dynamic IP** or changing **VPN**, read on.
+
 ## Why this script
-If you connect to your Webmin/Virtualmin instance remotely (for example on a VPS) from a **dynamic IP** or changing **VPN**, this script is for you.
 
 On Webmin, you can decide to <ins>allow connections only from selected ip numbers or hostnames</ins>. 
 This is a great security feature, however useless if you have a dynamic IP, like most people do, or if you use a random VPN machine to connect.
