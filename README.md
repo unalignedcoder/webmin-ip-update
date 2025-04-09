@@ -15,11 +15,11 @@ Furthermore, most likely it means allowing their app to always run in the backgr
 Not anymore.
 
 ## What this script does:
-1) It will discover your IP number against a free IP service such as Icanhazip or ipify;
-2) Connect to your remote server, retrieve the `/etc/webim/miniserv.conf` file Webmin uses for settings;
-3) Check whether the `allow=` line already contains your current IP number (if yes, exit the script);
-4) If not, modify it so that the IP number is current (it will append the current IP to the list, if multiple IPs/Hostnames are allowed, removing the previous dynamic IP number);
-5) Restart Webmin.
+1) It discovers your IP number against a free IP service such as Icanhazip or ipify;
+2) Connects to your remote server, retrieve the `/etc/webim/miniserv.conf` file Webmin uses for settings;
+3) Checks whether the `allow=` line already contains your current IP number (if yes, exit the script);
+4) If not, modifies it so that the IP number is current (it will append the current IP to the list, if multiple IPs/Hostnames are allowed, removing the previous dynamic IP number);
+5) Restarts Webmin.
 
 ## Requirements
 On Windows, this script connects to your server via SSH using Plink (part of the [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/) package).
