@@ -25,10 +25,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-<<<<<<< HEAD
 #============== version
 
-$scriptVersion="1.0.2"
+$scriptVersion="1.0.5"
 
 #============== Separate SSH Config file
 
@@ -56,12 +55,6 @@ $hostKey = $HOST_KEY
 
 # Path to plink executable
 $plink = "B:\programs\PuTTYPortable\App\putty\PLINK.EXE"
-=======
-#============== Customize the following variables to your needs
-
-# Path to plink executable
-$plink = "PLINK.EXE"
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 
 # Array of IP services to query 
 # thanks to https://www.scriptinglibrary.com/languages/powershell/how-to-get-your-external-ip-with-powershell-core-using-a-restapi/
@@ -70,15 +63,6 @@ $ipServices = @("https://icanhazip.com", "https://api.ipify.org", "https://ipinf
 # Define the file path for miniserv.conf
 $miniservConfPath = "/etc/webmin/miniserv.conf"
 
-<<<<<<< HEAD
-=======
-# SSH variables
-$sshHost = "<ip-number or server hostname>"
-$sshUser = "<username with write privileges to miniserv.conf>"
-$sshPort = "<port number>" # Usually 22, custom number is recommended
-$hostKey = "<Public Host Key Fingerprint in the key-type:host-key format>" # Probably necessary only the first time the script is ran
-
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 # File to store the last known IP
 $ipStore = "$PSScriptRoot/.last_known_ip.txt"
 
@@ -88,7 +72,6 @@ $restartWebmin = $true
 # Should multiple IPs be allowed?
 $multipleIPs = $false
 
-<<<<<<< HEAD
 # Prompt to Open KeePassXC?
 $openKeePassXC = $true
 
@@ -98,8 +81,6 @@ $keepassPath = "B:\programs\KeePassXC\KeePassXC.exe"
 # Add reference to System.Windows.Forms for SendKeys
 Add-Type -AssemblyName System.Windows.Forms
 
-=======
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 # Create log file? For debugging purposes
 $logFile = $true
 
@@ -112,11 +93,7 @@ $logFilePath = "$PSScriptRoot\script.log"
 #============== Functions
 
 # Function to log messages to a file
-<<<<<<< HEAD
 function Write-Log  {
-=======
-function Log-Message {
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 	param (
 		[string]$Message
 	)
@@ -152,48 +129,27 @@ function Get-ExternalIP {
         try {
             $externalIP = (Invoke-WebRequest -Uri $ipService -ErrorAction Stop).Content.Trim()
             if ($externalIP) {
-<<<<<<< HEAD
                 Write-Log -Message "Your IP appears to be $externalIP"
-=======
-                Log-Message -Message "Your IP appears to be $externalIP"
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
                 return $externalIP
             }
         } catch {
             $errorMessage = "Failed to retrieve external IP from $ipService. Error: $_"
-<<<<<<< HEAD
             Write-Log -Message $errorMessage
-=======
-            Log-Message -Message $errorMessage
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
         }
     }
 
     # Write-Host "Failed to retrieve external IP"
-<<<<<<< HEAD
     Write-Log -Message "Failed to retrieve external IP from any IP service. Exiting."
     throw "Failed to retrieve external IP"      
 }
 
-=======
-    Log-Message -Message "Failed to retrieve external IP from any IP service. Exiting."
-    throw "Failed to retrieve external IP"      
-}
-
-
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 # unneeded for IP services, required for DNS requests
 # Check if the IP contains both v4 and v6 parts, extract IPv4
 <#if($externalIP -match '\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:\s*:\S*)?') {
 	$ipParts = $externalIP.Split(':')
 	$ipv4Part = $ipParts[-1].TrimStart('.')
 	$externalIP = $ipv4Part
-<<<<<<< HEAD
 } #>					
-=======
-} #>
-					
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 			
 # Display BurntToast Notifications
 function Show-BurntToastNotification {
@@ -203,18 +159,13 @@ function Show-BurntToastNotification {
 	)
 	
 	# Install the BurntToast module if not already installed
-<<<<<<< HEAD
 	if (-not (Get-Module -Name BurntToast -ListAvailable )) {
         
-=======
-	if (-not (Get-Module -Name BurntToast -ListAvailable )) {			
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 		Install-Module -Name BurntToast -Scope CurrentUser
 	}
 	
 	# for when the above is commented out, we log a message.
 	if (Get-Module -Name BurntToast -ListAvailable) {
-<<<<<<< HEAD
 
 		New-BurntToastNotification -Text $Text -AppLogo $AppLogo
 
@@ -442,72 +393,10 @@ try {
 
 		exit 1
 	}
-=======
-		New-BurntToastNotification -Text $Text -AppLogo $AppLogo
-	} else {
-		Log-Message -Message "BurntToast module is not installed. Cannot display system notifications."
-	}
-}
-
-#==============  SSH Agents checks (it's either Pageant or OpenSSH)
-
-# Check if Pageant is running
-function check-SSH {
-	$processPageant = Get-Process -Name "Pageant" -ErrorAction SilentlyContinue
-
-	if ($processPageant -ne $null) {
-		# Pageant is running, continue with the script
-		Log-Message -Message "Pageant is running."
-	}
-	elseif ($env:SSH_AUTH_SOCK -ne $null) {
-		# OpenSSH agent is running
-
-		# Check if SSH keys are loaded in OpenSSH agent
-		$sshKeysLoaded = $null
-		try {
-			$sshKeysLoaded = ssh-add -l 2>$null
-		} catch {
-			# Error occurred, likely due to no keys loaded
-			$sshKeysLoaded = $null
-		}
-
-		if ($sshKeysLoaded -eq $null) {
-			# No keys loaded, provide a warning and exit
-			$errorMessage = "OpenSSH agent is running, but no SSH keys are loaded."
-			Log-Message -Message "Warning: $errorMessage"
-			New-BurntToastNotification -Text "Warning: $errorMessage" -AppLogo "error.png"
-			exit 1  # You can choose an appropriate exit code
-		} else {
-			# SSH keys are loaded in OpenSSH agent
-			Log-Message -Message "SSH keys are loaded in OpenSSH agent."
-		}
-	}
-	else {
-		# Neither Pageant nor OpenSSH agent is running, exit with a warning
-		$errorMessage = "Could not find any SSH Agent running. Please start an SSH agent and load your SSH keys before running this script."
-		Log-Message -Message "Warning: $errorMessage"
-		New-BurntToastNotification -Text "Warning: $errorMessage" -AppLogo "error.png"
-		exit 1  # You can choose an appropriate exit code
-	}
-}
-
-
-#============== Execution
-
-try {
-	
-	#Start log session
-	Log-Message -Message "===== New Log Session ====="
-	Log-Message -Message  "Script: PowerShell"
-	
-	#check SSH agent
-	check-SSH
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 
     # Call the Get-ExternalIP function to retrieve the external IP
     $externalIP = Get-ExternalIP
 
-<<<<<<< HEAD
     # Log the current IP
 	Write-Log -Message "Current IP: $externalIP"
     Write-Host "Current IP: $externalIP"
@@ -565,57 +454,6 @@ try {
 
 	} else {
 
-=======
-   # Log the current IP
-	Log-Message -Message "Current IP: $externalIP"
-
-    # Read the old IP from the store file and Log it to console
-    $oldIP = ""
-    if (Test-Path -Path $ipStore) {
-        $oldIP = Get-Content -Path $ipStore
-		# Write-Host "Last logged IP: $oldIP"
-		Log-Message -Message "Last logged IP: $oldIP"
-    }
-
-	# Use Plink to check miniserv.conf content
-    $miniservConfContent = Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort cat $miniservConfPath"
-	
-	# Check if preserving multiple allowed IPs is necessary
-	if ($multipleIPs) {
-		# Regular expression to match the 'allow=' line and its IP addresses
-		$regex = 'allow=([^\n]*)'
-		
-		# Get the current 'allow=' line from miniserv.conf
-		$currentAllowLine = ($miniservConfContent | Select-String -Pattern $regex).Matches.Groups[1].Value
-
-		# Split the current 'allow=' line into an array of IP addresses/hostnames
-		$allowIPs = $currentAllowLine.Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)
-
-		# Check if the old IP exists in the array of IP addresses
-		$oldIPIndex = $allowIPs.IndexOf($oldIP)
-
-		# Check if the old IP exists and is different from the new IP
-		if ($oldIPIndex -ne -1 -and $oldIP -ne $externalIP) {
-			$allowIPs[$oldIPIndex] = $externalIP
-		}
-		elseif ($oldIP -eq $externalIP) {
-			# If the old IP is the same as the new IP, exit the script
-			Log-Message -Message "$externalIP is already allowed in Webmin. Nothing to do."
-			# Pause execution to keep the window open (debug feature)
-			# Read-Host "Press Enter to exit..."
-			exit
-		}
-		else {
-			# If the old IP doesn't exist, add the new IP to the array
-			$allowIPs += $externalIP
-		}
-
-		# Reconstruct the 'allow=' line with the updated IP addresses
-		$updatedAllowLine = "allow=" + ($allowIPs -join " ")
-		
-	} else {
-		
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
 		$updatedAllowLine = "allow=$externalIP"		
 	}
 
@@ -625,7 +463,6 @@ try {
 	
 	# Show notification & log
 	Show-BurntToastNotification -Text "IP address updated successfully.`nNew IP: $externalIP" -AppLogo "ip.png"
-<<<<<<< HEAD
 	Write-Log -Message "IP address updated successfully." 
     Write-Host "IP address updated successfully."
     
@@ -638,21 +475,10 @@ try {
 		Show-BurntToastNotification -Text "Webmin restarted." -AppLogo "webmin.png"    	
 		Write-Log -Message "Webmin restarted."
         Write-Host "Webmin restarted."
-=======
-	Log-Message -Message "IP address updated successfully." 
-    
-    # Restart Webmin if so specified
-    if ($restartWebmin) {
-        Invoke-Expression -Command "$plink -ssh $sshUser@$sshHost -hostkey $hostKey -batch -P $sshPort ""systemctl restart webmin"""        
-	    # Show notification	& Log    
-		Show-BurntToastNotification -Text "Webmin restarted." -AppLogo "webmin.png"    	
-		Log-Message -Message "Webmin restarted."
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
     }
 
     # Update the IP store file with the current IP
     $externalIP | Set-Content -Path $ipStore
-<<<<<<< HEAD
 	Write-Log -Message "Most recent IP added to store file."
     Write-Host "Most recent IP added to store file."
 
@@ -710,25 +536,3 @@ try {
 
 # Pause execution to keep the window open (debug feature)
 # Read-Host "Press Enter to exit..."
-=======
-	# Write-Host "Most recent IP added to store file."
-	Log-Message -Message "Most recent IP added to store file." 
-
-} catch {
-	
-    # Handle errors
-    $errorMessage = $_.Exception.Message
-	if ($errorMessage == "Cannot index into a null array") {
-		$errorMessage = "Cannot login. Your SSH keys are probably not loaded."
-		}
-	# Notification when there's an error
-	New-BurntToastNotification -Text "$errorMessage" -AppLogo "error.png"	
-	# Write-Host "Error: An error occurred: $errorMessage"
-	Log-Message -Message "Error: $errorMessage" 
-	
-} 
-
-# Pause execution to keep the window open (debug feature)
-# Read-Host "Press Enter to exit..."
-
->>>>>>> 2beeb04f173cfa4150c326d5b0ed5dcfcdd661fc
