@@ -48,4 +48,6 @@ Most importantly, it is essential that you have **a running SSH agent** (such as
 ## Portability
 The script is "portable". It will write one necessary file into its own directory (this file can be shared between the PowerShell and Bash scripts), and will look for icons for the notifications within the same directory. By keeping all the files in their own folder, the script can work from any machine.
 
+<p align=center>Why, thank you for asking!<br />👉 You can donate to all my projects <a href="https://www.buymeacoffee.com/unalignedcoder" target="_blank" title="buymeacoffee.com">here</a>👈</p>
+
 [^1]:  Under both Windows and Linux, it can be a good idea to use a program such as [KeepassXC](https://github.com/keepassxreboot/keepassxc) to load SSH keys onto your SSH agent, so that they will be available only when you are logged into the Keepass database.
